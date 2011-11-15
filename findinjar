@@ -1,0 +1,109 @@
+#!/usr/bin/python
+# version 0.3 - still buggy, but with maven support
+# specifying relative paths does not work very well
+# http://pypi.python.org/pypi/restclient for maven search to work
+# Feel free to improve!
+#
+
+import os,re,sys,zipfile
+searchphrase="apache"
+searchpath="."
+stopfirst=False
+skipclass=False
+import getopt
+funpathprint = lambda x:x
+def showhelp():
+    print """
+findinjar [-c |-q |-h | -p path| string(s)]
+
+Searches in jars for class names containg [string]
+Stops at first match, unless -c is set.
+-p - (absolute) path
+-q - display only jar file/ first match
+-h - show help
+-1 - stop at first match
+-m - maven search artifact/groupid, emits dependency xml snippet for each hit.(on one , easily greppable line)
+"""
+    exit(0)
+
+def mavensearch(phrase):
+    from restclient import GET
+    import json
+    p = 'http://search.maven.org/solrsearch/select?q=a:\"' + phrase + '"%20OR%20g:"'+ phrase + '"&rows=100&wt=json'
+    response = GET(p)
+    c = json.loads(response)
+    r =  c['response']
+
+    print "<!-- found %s --> \n" % r["numFound"]
+    for x in r['docs']:
+        print """ <dependency><artifactId>%(a)s</artifactId><groupId>%(g)s</groupId><version>%(latestVersion)s</version></dependency><scope>compile</scope> """ % x
+def travdir(d,searchphrase):
+    for f in os.listdir(d):
+        try:
+            if f =="." or f=="..":
+                continue
+            if os.path.isdir(f):
+                olddir = os.getcwd()
+                os.chdir(f)
+                if travdir(".",searchphrase)=="HALT":
+                    return "HALT"
+                os.chdir(olddir)
+        except Exception,e:
+            print "Exception,",e 
+            continue
+        if re.search("\.jar$",f):
+            try:
+                First = True
+                zf = zipfile.ZipFile(f)
+                for info in zf.infolist():
+                    i = info.filename
+                    if not re.search(".class$",i):
+                        continue
+                    i = i.replace("/",".");
+                    i = i.replace(".class","")
+                    if re.search(searchphrase,i):
+                        if First:
+                            print "%s/%s\n\t%s " %(funpathprint(os.getcwd()),f,i)
+                            First = False
+                            if stopfirst:
+                                return "HALT"
+                        else:
+                            if not skipclass:
+                                print "\t\t%s" %(i)
+            except Exception,e:
+                continue
+
+argpat = "1qhmp:"
+optlist,args = getopt.getopt(sys.argv[1:],argpat)
+d = dict()
+for x in optlist:
+    d[x[0]]= x[1]
+
+cwd=os.getcwd()
+searchpath = d.get("-p",".")
+if d.has_key("-m"):
+    for p in args:
+        mavensearch(p)
+        exit(0)
+if d.has_key("-h"):
+    showhelp()
+if d.has_key("-q"):
+    skipclass=True
+if searchpath != '.':
+    funpathprint = lambda x:x
+    if os.path.isdir(searchpath):
+        os.chdir(searchpath)
+    else:
+        print("Error: %s is not a valid path" %searchpath)
+        exit(1)
+
+else:
+    funpathprint = lambda x:os.path.relpath(x,cwd)
+
+if d.has_key("-1"):
+    stopfirst = True
+
+for phrase in args:
+    First = True
+    travdir(searchpath,phrase.strip())
+
