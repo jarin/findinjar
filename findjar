@@ -1,9 +1,23 @@
 #!/usr/bin/python
-# version 0.3 - still buggy, but with maven support
+# python 2.6+
 # specifying relative paths does not work very well
 # http://pypi.python.org/pypi/restclient for maven search to work
-# Feel free to improve!
+
+# Apache license http://www.apache.org/licenses/LICENSE-2.0.html
 #
+#   Copyright [2011] [Jari N]
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 import os,re,sys,zipfile
 searchphrase="apache"
@@ -14,15 +28,15 @@ import getopt
 funpathprint = lambda x:x
 def showhelp():
     print """
-findinjar [-c |-q |-h | -p path| string(s)]
+findjar [-c |-q |-h | -p path| string(s)]
 
-Searches in jars for class names containg [string]
+Searches in jars/maven repo for class names containg [string]
 Stops at first match, unless -c is set.
 -p - (absolute) path
 -q - display only jar file/ first match
 -h - show help
 -1 - stop at first match
--m - maven search artifact/groupid, emits dependency xml snippet for each hit.(on one , easily greppable line)
+-m - maven search artifact/groupid, emits dependency xml snippet for each hit.
 """
     exit(0)
 
