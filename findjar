@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.6
 # python 2.6+
 # specifying relative paths does not work very well
 # http://pypi.python.org/pypi/restclient for maven search to work
@@ -25,6 +25,8 @@ searchpath="."
 stopfirst=False
 skipclass=False
 import getopt
+
+#The lambda's here mainly for the *fun* of it.
 funpathprint = lambda x:x
 def showhelp():
     print """
@@ -50,7 +52,7 @@ def mavensearch(phrase):
 
     print "<!-- found %s --> \n" % r["numFound"]
     for x in r['docs']:
-        print """ <dependency><artifactId>%(a)s</artifactId><groupId>%(g)s</groupId><version>%(latestVersion)s</version></dependency><scope>compile</scope> """ % x
+        print """ <dependency><artifactId>%(a)s</artifactId><groupId>%(g)s</groupId><version>%(latestVersion)s</version><scope>compile</scope> </dependency>""" % x
 def travdir(d,searchphrase):
     for f in os.listdir(d):
         try:
